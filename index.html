@@ -3,74 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pickleball Splitter</title>
+    <title>Pickleball Group Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .active-tab { border-bottom: 4px solid #15803d; color: #15803d; font-weight: bold; }
+    </style>
 </head>
-<body class="bg-gray-100 p-4">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h1 class="text-2xl font-bold text-green-700 mb-4">Pickleball Contribution</h1>
+<body class="bg-gray-100 min-h-screen">
+
+    <nav class="bg-white shadow-md mb-4 sticky top-0 z-10">
+        <div class="flex justify-around text-xs sm:text-sm">
+            <button onclick="showTab('splitter')" id="tab-splitter" class="py-4 px-2 active-tab">Splitter</button>
+            <button onclick="showTab('tourney')" id="tab-tourney" class="py-4 px-2">Tourney</button>
+            <button onclick="showTab('practice')" id="tab-practice" class="py-4 px-2">Practice</button>
+			<button onclick="showTab('predictor')" id="tab-predictor" class="py-4 px-2"> DUPR Predictor</button>
+        </div>
+    </nav>
+
+    <div class="max-w-xl mx-auto p-4 pb-20">
         
-        <div class="mb-4">
-            <label class="block text-gray-700">Total Amount (₹)</label>
-            <input type="number" id="totalAmt" class="w-full border p-2 rounded mt-1" placeholder="e.g. 1600">
+        <div id="section-splitter">
+            <div class="bg-white rounded-xl shadow p-6 border-t-4 border-green-600">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Splitter</h2>
+                    <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded uppercase tracking-wider">Session Only</span>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-medium">Total Amount (₹)</label>
+                    <input type="number" id="totalAmt" class="w-full border p-2 rounded mt-1" placeholder="e.g. 1600">
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="splitName" class="flex-1 border p-2 rounded" placeholder="Name">
+                    <input type="number" id="splitTime" class="w-20 border p-2 rounded" placeholder="Min">
+                    <button onclick="addSplitPlayer()" class="bg-green-600 text-white px-4 py-2 rounded font-bold">+</button>
+                </div>
+                <div id="splitList" class="space-y-2 mb-4 max-h-40 overflow-y-auto"></div>
+                <button onclick="calculateSplit()" class="w-full bg-green-700 text-white font-bold py-3 rounded-lg mb-4 shadow-md">Calculate Split</button>
+                <div id="splitResults" class="space-y-2"></div>
+                <button id="shareSplitBtn" onclick="shareSplit()" class="hidden w-full mt-4 bg-blue-600 text-white py-2 rounded-lg shadow">Share to WhatsApp</button>
+            </div>
         </div>
 
-        <div class="flex gap-2 mb-4">
-            <input type="text" id="pName" class="flex-1 border p-2 rounded" placeholder="Player Name">
-            <input type="number" id="pTime" class="w-20 border p-2 rounded" placeholder="Min">
-            <button onclick="addPlayer()" class="bg-green-600 text-white px-4 py-2 rounded">+</button>
+        <div id="section-tourney" class="hidden">
+            <div class="bg-white rounded-xl shadow p-6 border-t-4 border-green-600">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-2xl font-bold text-gray-800">Tourney</h2>
+                    <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded uppercase tracking-wider">12-64 Players</span>
+                </div>
+                <p class="text-gray-500 text-xs mb-4 italic">Note: Enter an even number of players.</p>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <input type="text" id="tName" class="border p-2 rounded text-sm" placeholder="Name">
+                    <input type="number" step="0.01" id="tDupr" class="border p-2 rounded text-sm" placeholder="DUPR">
+                    <input type="number" id="tAge" class="border p-2 rounded text-sm" placeholder="Age">
+                </div>
+                <button onclick="addTourneyPlayer()" class="w-full border-2 border-green-600 text-green-700 py-2 rounded font-bold mb-4">+ Add Player</button>
+                
+                <div id="tourneyList" class="space-y-1 mb-6 max-h-48 overflow-y-auto border-b pb-4 text-sm text-gray-600"></div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 p-3 rounded">
+                        <label class="block text-[10px] font-bold mb-2 uppercase text-gray-500">Pairing By:</label>
+                        <select id="criterion" class="w-full border p-2 rounded text-sm">
+                            <option value="random">Purely Random</option>
+                            <option value="dupr">Balanced DUPR</option>
+                            <option value="age">Balanced Age</option>
+                        </select>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded">
+                        <label class="block text-[10px] font-bold mb-2 uppercase text-gray-500">Total Groups:</label>
+                        <select id="groupCount" class="w-full border p-2 rounded text-sm">
+                            <option value="3">3 Groups</option>
+                            <option value="4">4 Groups</option>
+                            <option value="5">5 Groups</option>
+                            <option value="6">6 Groups</option>
+                            <option value="7">7 Groups</option>
+                            <option value="8">8 Groups</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateTourney()" class="w-full bg-green-700 text-white font-bold py-3 rounded-lg shadow-md uppercase tracking-wide">Generate Draws</button>
+                <div id="tourneyResults" class="mt-6 space-y-6"></div>
+                <button id="shareTourneyBtn" onclick="shareTourney()" class="hidden w-full mt-6 bg-blue-600 text-white py-3 rounded-lg shadow">Share Draws to WhatsApp</button>
+            </div>
         </div>
 
-        <div id="playerList" class="space-y-2 mb-4"></div>
+        <div id="section-practice" class="hidden">
+            <div class="bg-white rounded-xl shadow p-6 border-t-4 border-green-600">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-2xl font-bold text-gray-800">Practice</h2>
+                    <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded uppercase tracking-wider">No Data Saved</span>
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="pName" class="flex-1 border p-2 rounded text-sm" placeholder="Player Name">
+                    <button onclick="addPracticePlayer()" class="bg-green-600 text-white px-6 py-2 rounded font-bold">+</button>
+                </div>
+                <div id="practiceList" class="space-y-1 mb-6 max-h-48 overflow-y-auto border-b pb-4 text-sm text-gray-600"></div>
+                <button onclick="generatePracticeRotation()" class="w-full bg-green-700 text-white font-bold py-3 rounded-lg shadow-md uppercase tracking-wide">Generate Rotation</button>
+                <div id="practiceResults" class="mt-6 space-y-4"></div>
+                <button id="sharePracticeBtn" onclick="sharePractice()" class="hidden w-full mt-6 bg-blue-600 text-white py-3 rounded-lg shadow">Share to WhatsApp</button>
+            </div>
+        </div>
+		
+		<div id="section-predictor" class="hidden">
+			<div class="bg-white rounded-xl shadow p-6 border-t-4 border-indigo-600">
+				<div class="flex justify-between items-center mb-6">
+					<h2 class="text-2xl font-bold text-gray-800">DUPR Predictor</h2>
+					<div class="flex bg-gray-100 rounded-lg p-1">
+						<button onclick="setFormat('singles')" id="btn-singles" class="px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600">Singles</button>
+						<button onclick="setFormat('doubles')" id="btn-doubles" class="px-3 py-1 text-xs font-bold rounded-md text-gray-500">Doubles</button>
+					</div>
+				</div>
 
-        <button onclick="calculate()" class="w-full bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg">Calculate Split</button>
-        
-        <div id="results" class="mt-6 space-y-2"></div>
+				<div class="space-y-4">
+					<div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+						<label class="block text-[10px] font-black text-blue-800 uppercase mb-3">Your Team Ratings</label>
+						<div class="grid grid-cols-2 gap-3">
+							<input type="number" id="myRating" step="0.01" class="w-full border p-2 rounded-lg text-sm" placeholder="Your DUPR">
+							<input type="number" id="partnerRating" step="0.01" class="w-full border p-2 rounded-lg text-sm hidden" placeholder="Partner DUPR">
+						</div>
+					</div>
 
-        <button id="shareBtn" onclick="shareToWhatsApp()" class="hidden w-full mt-4 bg-blue-500 text-white py-2 rounded-lg">Share to WhatsApp</button>
+					<div class="bg-red-50 p-4 rounded-xl border border-red-100">
+						<label class="block text-[10px] font-black text-red-800 uppercase mb-3">Opponent Ratings</label>
+						<div class="grid grid-cols-2 gap-3">
+							<input type="number" id="opp1Rating" step="0.01" class="w-full border p-2 rounded-lg text-sm" placeholder="Opp 1 DUPR">
+							<input type="number" id="opp2Rating" step="0.01" class="w-full border p-2 rounded-lg text-sm hidden" placeholder="Opp 2 DUPR">
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4 pt-2">
+						<button onclick="calculateElo(1)" class="bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg">Win</button>
+						<button onclick="calculateElo(0)" class="bg-red-600 text-white py-3 rounded-xl font-bold shadow-lg">Loss</button>
+					</div>
+				</div>
+
+				<div id="eloResult" class="mt-8 hidden">
+					<div class="text-center p-6 bg-slate-900 rounded-2xl border-b-4 border-indigo-500">
+						<p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">New Estimated Rating</p>
+						<h3 id="newRatingDisplay" class="text-5xl font-black text-white my-2">0.00</h3>
+						<p id="ratingDelta" class="text-sm font-bold"></p>
+					</div>
+					<p class="text-[9px] text-gray-400 mt-4 text-center italic">Algorithm: Team Average Elo (K-Factor 0.1)</p>
+				</div>
+			</div>
+		</div>
     </div>
 
     <script>
-        let players = [];
+        let splitPlayers = [];
+        let tourneyPlayers = [];
+        let practicePlayers = [];
+		let currentFormat = 'singles';
 
-        function addPlayer() {
-            const name = document.getElementById('pName').value;
-            const time = document.getElementById('pTime').value;
-            if(name && time) {
-                players.push({ name, time: parseFloat(time) });
-                updateList();
-                document.getElementById('pName').value = '';
-                document.getElementById('pTime').value = '';
+        function showTab(tab) {
+            ['splitter', 'tourney', 'practice', 'predictor'].forEach(t => {
+                document.getElementById('section-' + t).classList.toggle('hidden', t !== tab);
+                document.getElementById('tab-' + t).classList.toggle('active-tab', t === tab);
+            });
+        }
+
+        // --- Splitter ---
+        function addSplitPlayer() {
+            const name = document.getElementById('splitName').value;
+            const time = parseFloat(document.getElementById('splitTime').value);
+            if (name && time) { splitPlayers.push({ name, time }); renderSplitList(); document.getElementById('splitName').value = ''; }
+        }
+        function renderSplitList() {
+            document.getElementById('splitList').innerHTML = splitPlayers.map((p, i) => `<div class="flex justify-between bg-gray-50 p-2 rounded text-sm"><span>${p.name} (${p.time}m)</span><button onclick="splitPlayers.splice(${i}, 1); renderSplitList();" class="text-red-500">✕</button></div>`).join('');
+        }
+        function calculateSplit() {
+            const total = parseFloat(document.getElementById('totalAmt').value);
+            if (!total || splitPlayers.length === 0) return alert("Enter amount and players");
+            const sumTP = splitPlayers.reduce((s, p) => s + p.time, 0);
+            let msg = "Pickleball Contribution:\n";
+            let html = '<h3 class="font-bold border-b pb-1 mb-2">Breakup:</h3>';
+            splitPlayers.forEach(p => {
+                const amt = Math.ceil((total / sumTP) * p.time);
+                html += `<div class="flex justify-between py-1 text-sm"><span>${p.name}</span><b>₹${amt}</b></div>`;
+                msg += `${p.name}: ₹${amt}\n`;
+            });
+            document.getElementById('splitResults').innerHTML = html;
+            window.lastSplitMsg = msg;
+            document.getElementById('shareSplitBtn').classList.remove('hidden');
+        }
+
+        // --- Tourney (New Logic) ---
+        function addTourneyPlayer() {
+            const name = document.getElementById('tName').value;
+            const dupr = parseFloat(document.getElementById('tDupr').value) || 0;
+            const age = parseInt(document.getElementById('tAge').value) || 0;
+            if (name) {
+                tourneyPlayers.push({ name, dupr, age });
+                renderTourneyList();
+                document.getElementById('tName').value = '';
             }
         }
-
-        function updateList() {
-            const list = document.getElementById('playerList');
-            list.innerHTML = players.map((p, i) => `<div class="flex justify-between bg-gray-50 p-2 rounded text-sm"><span>${p.name}</span><span>${p.time} mins</span></div>`).join('');
+        function renderTourneyList() {
+            const count = tourneyPlayers.length;
+            const statusColor = (count % 2 !== 0 || count < 12) ? 'text-red-500' : 'text-green-600';
+            document.getElementById('tourneyList').innerHTML = `<p class="text-[10px] font-bold mb-1 uppercase ${statusColor}">Current Count: ${count}</p>` + 
+                tourneyPlayers.map((p, i) => `<div class="flex justify-between bg-gray-50 p-1 px-2 rounded"><span>${p.name}</span><button onclick="tourneyPlayers.splice(${i}, 1); renderTourneyList();" class="text-red-400">✕</button></div>`).join('');
         }
+        function generateTourney() {
+            const count = tourneyPlayers.length;
+            if (count < 12 || count > 64) return alert("Total players must be between 12 and 64.");
+            if (count % 2 !== 0) return alert("Number of players must be even to form pairs.");
 
-        function calculate() {
-            const totalAmt = parseFloat(document.getElementById('totalAmt').value);
-            const sumTP = players.reduce((sum, p) => sum + p.time, 0);
-            const resultsDiv = document.getElementById('results');
-            
-            let summaryText = "Pickleball Contribution Breakup:\n";
+            let pool = [...tourneyPlayers];
+            const crit = document.getElementById('criterion').value;
+            const numGroups = parseInt(document.getElementById('groupCount').value);
+            let pairs = [];
 
-            resultsDiv.innerHTML = '<h2 class="font-bold border-b pb-2">Breakup (Rounded Up)</h2>';
-            players.forEach(p => {
-                const amount = Math.ceil((totalAmt / sumTP) * p.time);
-                resultsDiv.innerHTML += `<div class="flex justify-between py-1"><span>${p.name}</span><span class="font-bold text-green-700">₹${amount}</span></div>`;
-                summaryText += `${p.name}: ₹${amount}\n`;
+            // Pairing
+            if (crit === 'random') {
+                pool.sort(() => Math.random() - 0.5);
+                for (let i = 0; i < pool.length; i += 2) pairs.push([pool[i], pool[i+1]]);
+            } else {
+                pool.sort((a, b) => (crit === 'dupr' ? b.dupr - a.dupr : b.age - a.age));
+                while (pool.length > 0) pairs.push([pool.shift(), pool.pop()]);
+            }
+
+            // Distribute into groups
+            let groupContainers = Array.from({ length: numGroups }, () => []);
+            pairs.forEach((pair, idx) => {
+                groupContainers[idx % numGroups].push(pair);
             });
-            
-            document.getElementById('shareBtn').classList.remove('hidden');
-            window.lastSummary = summaryText;
+
+            renderTourneyDisplay(groupContainers);
+        }
+        function renderTourneyDisplay(groupContainers) {
+            const resDiv = document.getElementById('tourneyResults');
+            resDiv.innerHTML = "";
+            let shareMsg = "Pickleball Tournament Draws\n\n";
+
+            groupContainers.forEach((teams, gIdx) => {
+                const gName = `Group ${String.fromCharCode(65 + gIdx)}`;
+                let groupHtml = `<div class="bg-green-50 p-4 rounded-lg border border-green-200"><h3 class="font-bold text-green-800 border-b border-green-200 mb-2">${gName}</h3>`;
+                shareMsg += `--- ${gName} ---\n`;
+                
+                teams.forEach((t, i) => {
+                    const teamLabel = `T${i+1}: ${t[0].name} & ${t[1].name}`;
+                    groupHtml += `<p class="text-sm font-medium mb-1">${teamLabel}</p>`;
+                    shareMsg += `${teamLabel}\n`;
+                });
+
+                // Match scheduling logic (Round Robin for the pairs in this group)
+                groupHtml += `<div class="mt-3 pt-2 border-t border-green-100 text-xs text-gray-600"><p class="font-bold mb-1 uppercase text-[10px]">Round Robin Matches:</p>`;
+                shareMsg += `\nMatches:\n`;
+                
+                for (let i = 0; i < teams.length; i++) {
+                    for (let j = i + 1; j < teams.length; j++) {
+                        const mText = `T${i+1} vs T${j+1}`;
+                        groupHtml += `<p>${mText}</p>`;
+                        shareMsg += `${mText}\n`;
+                    }
+                }
+                
+                groupHtml += `</div></div>`;
+                resDiv.innerHTML += groupHtml;
+                shareMsg += `\n`;
+            });
+
+            window.lastTourneyMsg = shareMsg;
+            document.getElementById('shareTourneyBtn').classList.remove('hidden');
         }
 
-        function shareToWhatsApp() {
-            const url = "whatsapp://send?text=" + encodeURIComponent(window.lastSummary);
-            window.location.href = url;
+        // --- Practice ---
+        function addPracticePlayer() {
+            const name = document.getElementById('pName').value;
+            if (name) { practicePlayers.push(name); renderPracticeList(); document.getElementById('pName').value = ''; }
         }
+        function renderPracticeList() {
+            document.getElementById('practiceList').innerHTML = `<p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Count: ${practicePlayers.length}</p>` + 
+                practicePlayers.map((p, i) => `<div class="flex justify-between bg-gray-50 p-1 px-2 rounded"><span>${p}</span><button onclick="practicePlayers.splice(${i}, 1); renderPracticeList();" class="text-red-400 font-bold">✕</button></div>`).join('');
+        }
+        function generatePracticeRotation() {
+            const n = practicePlayers.length;
+            if (n < 4) return alert("Need 4+ players.");
+            let players = [...practicePlayers];
+            if (n % 2 !== 0) players.push("BYE");
+            const rounds = players.length - 1;
+            let html = '<h3 class="font-bold border-b pb-1 mb-2 text-blue-800">Rotation Schedule:</h3>';
+            let msg = "Monday Practice Rotation:\n\n";
+            for (let r = 0; r < rounds; r++) {
+                let roundPairs = [];
+                let roundByes = [];
+                for (let i = 0; i < players.length / 2; i++) {
+                    const p1 = players[i]; const p2 = players[players.length - 1 - i];
+                    if (p1 !== "BYE" && p2 !== "BYE") roundPairs.push(`${p1} & ${p2}`);
+                    else roundByes.push(p1 === "BYE" ? p2 : p1);
+                }
+                html += `<div class="bg-blue-50 p-3 rounded-lg mb-2"><p class="font-bold text-xs text-blue-800 uppercase">Round ${r+1}</p>`;
+                msg += `Round ${r+1}:\n`;
+                for (let m = 0; m < roundPairs.length; m += 2) {
+                    if (roundPairs[m+1]) {
+                        const mt = `C${Math.floor(m/2)+1}: ${roundPairs[m]} vs ${roundPairs[m+1]}`;
+                        html += `<p class="text-[10px]">${mt}</p>`; msg += `${mt}\n`;
+                    } else { roundByes.push(roundPairs[m]); }
+                }
+                if (roundByes.length > 0) { html += `<p class="text-[9px] italic text-gray-500 mt-1">Sitting: ${roundByes.join(', ')}</p>`; msg += `Sitting: ${roundByes.join(', ')}\n`; }
+                html += `</div>`; msg += `\n`;
+                players.splice(1, 0, players.pop());
+            }
+            document.getElementById('practiceResults').innerHTML = html;
+            window.lastPracticeMsg = msg;
+            document.getElementById('sharePracticeBtn').classList.remove('hidden');
+        }
+
+        function shareSplit() { window.location.href = "whatsapp://send?text=" + encodeURIComponent(window.lastSplitMsg); }
+        function shareTourney() { window.location.href = "whatsapp://send?text=" + encodeURIComponent(window.lastTourneyMsg); }
+        function sharePractice() { window.location.href = "whatsapp://send?text=" + encodeURIComponent(window.lastPracticeMsg); }
+		
+		function setFormat(format) {
+        currentFormat = format;
+        const isDoubles = format === 'doubles';
+        
+        // Toggle Input Visibility
+        document.getElementById('partnerRating').classList.toggle('hidden', !isDoubles);
+        document.getElementById('opp2Rating').classList.toggle('hidden', !isDoubles);
+        
+        // Toggle Button Styles
+        document.getElementById('btn-singles').className = !isDoubles ? 
+            "px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600" : 
+            "px-3 py-1 text-xs font-bold rounded-md text-gray-500";
+        document.getElementById('btn-doubles').className = isDoubles ? 
+            "px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600" : 
+            "px-3 py-1 text-xs font-bold rounded-md text-gray-500";
+            
+        document.getElementById('eloResult').classList.add('hidden');
+    }
+
+    function calculateElo(actualOutcome) {
+        const myR = parseFloat(document.getElementById('myRating').value) || 0;
+        const pR = parseFloat(document.getElementById('partnerRating').value) || 0;
+        const o1R = parseFloat(document.getElementById('opp1Rating').value) || 0;
+        const o2R = parseFloat(document.getElementById('opp2Rating').value) || 0;
+
+        if (!myR || !o1R) return alert("Please enter the primary ratings.");
+        if (currentFormat === 'doubles' && (!pR || !o2R)) return alert("Please enter all four ratings for Doubles.");
+
+        // 1. Calculate Team Averages
+        const teamARating = currentFormat === 'doubles' ? (myR + pR) / 2 : myR;
+        const teamBRating = currentFormat === 'doubles' ? (o1R + o2R) / 2 : o1R;
+
+        // 2. Expected Outcome (Logistic Curve)
+        const expectedOutcome = 1 / (1 + Math.pow(10, (teamBRating - teamARating) / 1.0));
+
+        // 3. K-Factor (Sensitivity)
+        const K = 0.1; 
+
+        // 4. Update individual rating based on team performance
+        const delta = K * (actualOutcome - expectedOutcome);
+        const newRating = myR + delta;
+
+        // Display
+        document.getElementById('eloResult').classList.remove('hidden');
+        document.getElementById('newRatingDisplay').innerText = newRating.toFixed(3);
+        
+        const deltaEl = document.getElementById('ratingDelta');
+        deltaEl.innerText = (delta >= 0 ? "+" : "") + delta.toFixed(3);
+        deltaEl.className = `text-sm font-bold ${delta >= 0 ? 'text-green-400' : 'text-red-400'}`;
+    }
+		
     </script>
 </body>
 </html>
