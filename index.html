@@ -252,13 +252,13 @@
                 // groupHtml += `<div class="mt-3 pt-2 border-t border-green-100 text-xs text-gray-600"><p class="font-bold mb-1 uppercase text-[10px]">Round Robin Matches:</p>`;
                 // shareMsg += `\nMatches:\n`;
                 
-                for (let i = 0; i < teams.length; i++) {
-                    for (let j = i + 1; j < teams.length; j++) {
-                        const mText = `T${i+1} vs T${j+1}`;
-                        groupHtml += `<p>${mText}</p>`;
-                        shareMsg += `${mText}\n`;
-                    }
-                }
+                // for (let i = 0; i < teams.length; i++) {
+                //    for (let j = i + 1; j < teams.length; j++) {
+                //        const mText = `T${i+1} vs T${j+1}`;
+                //        groupHtml += `<p>${mText}</p>`;
+                //        shareMsg += `${mText}\n`;
+                //    }
+                // }
                 
                 groupHtml += `</div></div>`;
                 resDiv.innerHTML += groupHtml;
