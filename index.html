@@ -133,6 +133,7 @@
 					</div>
 
 					<div class="grid grid-cols-2 gap-4 pt-2">
+						<button onclick="predictScore()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Predict Score</button>
 						<button onclick="calculateElo(1)" class="bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg">Win</button>
 						<button onclick="calculateElo(0)" class="bg-red-600 text-white py-3 rounded-xl font-bold shadow-lg">Loss</button>
 					</div>
@@ -145,6 +146,12 @@
 						<p id="ratingDelta" class="text-sm font-bold"></p>
 					</div>
 					<p class="text-[9px] text-gray-400 mt-4 text-center italic">Algorithm: Team Average Elo (K-Factor 0.1)</p>
+				</div>
+				
+				<div id="prediction-output" class="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl text-center hidden">
+					<p class="text-sm text-indigo-600 font-bold uppercase tracking-wider mb-1">Predicted Final Score</p>
+					<h2 id="predicted-score-text" class="text-4xl font-black text-indigo-950">11 - 0</h2>
+					<p id="win-prob-text" class="text-xs text-indigo-500 mt-2 font-medium">Team A has a 50% chance of winning.</p>
 				</div>
 			</div>
 		</div>
@@ -316,55 +323,94 @@
         function sharePractice() { window.location.href = "whatsapp://send?text=" + encodeURIComponent(window.lastPracticeMsg); }
 		
 		function setFormat(format) {
-        currentFormat = format;
-        const isDoubles = format === 'doubles';
-        
-        // Toggle Input Visibility
-        document.getElementById('partnerRating').classList.toggle('hidden', !isDoubles);
-        document.getElementById('opp2Rating').classList.toggle('hidden', !isDoubles);
-        
-        // Toggle Button Styles
-        document.getElementById('btn-singles').className = !isDoubles ? 
-            "px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600" : 
-            "px-3 py-1 text-xs font-bold rounded-md text-gray-500";
-        document.getElementById('btn-doubles').className = isDoubles ? 
-            "px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600" : 
-            "px-3 py-1 text-xs font-bold rounded-md text-gray-500";
-            
-        document.getElementById('eloResult').classList.add('hidden');
-    }
+			currentFormat = format;
+			const isDoubles = format === 'doubles';
+			
+			// Toggle Input Visibility
+			document.getElementById('partnerRating').classList.toggle('hidden', !isDoubles);
+			document.getElementById('opp2Rating').classList.toggle('hidden', !isDoubles);
+			
+			// Toggle Button Styles
+			document.getElementById('btn-singles').className = !isDoubles ? 
+				"px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600" : 
+				"px-3 py-1 text-xs font-bold rounded-md text-gray-500";
+			document.getElementById('btn-doubles').className = isDoubles ? 
+				"px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm text-indigo-600" : 
+				"px-3 py-1 text-xs font-bold rounded-md text-gray-500";
+				
+			document.getElementById('eloResult').classList.add('hidden');
+		}
 
-    function calculateElo(actualOutcome) {
-        const myR = parseFloat(document.getElementById('myRating').value) || 0;
-        const pR = parseFloat(document.getElementById('partnerRating').value) || 0;
-        const o1R = parseFloat(document.getElementById('opp1Rating').value) || 0;
-        const o2R = parseFloat(document.getElementById('opp2Rating').value) || 0;
+		function calculateElo(actualOutcome) {
+			const myR = parseFloat(document.getElementById('myRating').value) || 0;
+			const pR = parseFloat(document.getElementById('partnerRating').value) || 0;
+			const o1R = parseFloat(document.getElementById('opp1Rating').value) || 0;
+			const o2R = parseFloat(document.getElementById('opp2Rating').value) || 0;
 
-        if (!myR || !o1R) return alert("Please enter the primary ratings.");
-        if (currentFormat === 'doubles' && (!pR || !o2R)) return alert("Please enter all four ratings for Doubles.");
+			if (!myR || !o1R) return alert("Please enter the primary ratings.");
+			if (currentFormat === 'doubles' && (!pR || !o2R)) return alert("Please enter all four ratings for Doubles.");
 
-        // 1. Calculate Team Averages
-        const teamARating = currentFormat === 'doubles' ? (myR + pR) / 2 : myR;
-        const teamBRating = currentFormat === 'doubles' ? (o1R + o2R) / 2 : o1R;
+			// 1. Calculate Team Averages
+			const teamARating = currentFormat === 'doubles' ? (myR + pR) / 2 : myR;
+			const teamBRating = currentFormat === 'doubles' ? (o1R + o2R) / 2 : o1R;
 
-        // 2. Expected Outcome (Logistic Curve)
-        const expectedOutcome = 1 / (1 + Math.pow(10, (teamBRating - teamARating) / 1.0));
+			// 2. Expected Outcome (Logistic Curve)
+			const expectedOutcome = 1 / (1 + Math.pow(10, (teamBRating - teamARating) / 1.0));
 
-        // 3. K-Factor (Sensitivity)
-        const K = 0.1; 
+			// 3. K-Factor (Sensitivity)
+			const K = 0.1; 
 
-        // 4. Update individual rating based on team performance
-        const delta = K * (actualOutcome - expectedOutcome);
-        const newRating = myR + delta;
+			// 4. Update individual rating based on team performance
+			const delta = K * (actualOutcome - expectedOutcome);
+			const newRating = myR + delta;
 
-        // Display
-        document.getElementById('eloResult').classList.remove('hidden');
-        document.getElementById('newRatingDisplay').innerText = newRating.toFixed(3);
-        
-        const deltaEl = document.getElementById('ratingDelta');
-        deltaEl.innerText = (delta >= 0 ? "+" : "") + delta.toFixed(3);
-        deltaEl.className = `text-sm font-bold ${delta >= 0 ? 'text-green-400' : 'text-red-400'}`;
-    }
+			// Display
+			document.getElementById('eloResult').classList.remove('hidden');
+			document.getElementById('newRatingDisplay').innerText = newRating.toFixed(3);
+			
+			const deltaEl = document.getElementById('ratingDelta');
+			deltaEl.innerText = (delta >= 0 ? "+" : "") + delta.toFixed(3);
+			deltaEl.className = `text-sm font-bold ${delta >= 0 ? 'text-green-400' : 'text-red-400'}`;
+		}
+	
+		function predictScore() {
+			let sideA = parseFloat(document.getElementById('myRating').value) || 0;
+			let sideB = parseFloat(document.getElementById('opp1Rating').value) || 0;
+
+			if (currentFormat === 'doubles') {
+				let partner = parseFloat(document.getElementById('partnerRating').value) || 0;
+				let opp2 = parseFloat(document.getElementById('opp2Rating').value) || 0;
+				sideA = (sideA + partner) / 2;
+				sideB = (sideB + opp2) / 2;
+			}
+
+			if (!sideA || !sideB) {
+				alert("Please fill in the required DUPR ratings.");
+				return;
+			}
+
+			// 1. DUPR Win Probability formula
+			const exponent = (sideB - sideA) / 1.1;
+			const winProbabilityA = 1 / (1 + Math.pow(10, exponent));
+
+			// 2. Derive expected scores
+			let scoreA, scoreB;
+			if (winProbabilityA >= 0.5) {
+				scoreA = 11;
+				scoreB = Math.round(11 * ((1 - winProbabilityA) / winProbabilityA));
+				// Edge case: ensure it doesn't calculate below 0 or break the "win by 2" logic
+				if (scoreB > 9) scoreB = 9; 
+			} else {
+				scoreB = 11;
+				scoreA = Math.round(11 * (winProbabilityA / (1 - winProbabilityA)));
+				if (scoreA > 9) scoreA = 9;
+			}
+
+			// 3. Render Outputs
+			document.getElementById('predicted-score-text').innerText = `${scoreA} - ${scoreB}`;
+			document.getElementById('win-prob-text').innerText = `Side A (You) has a ${(winProbabilityA * 100).toFixed(1)}% chance of winning each point.`;
+			document.getElementById('prediction-output').classList.remove('hidden');
+		}
 		
     </script>
 </body>
